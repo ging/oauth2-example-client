@@ -1,0 +1,23 @@
+{
+  "name": "oauth2-example-client",
+  "version": "0.1.0",
+  "description": "Oauth2 authentication example for FI-WARE GE applications",
+  "author": "GING DIT UPM",
+  "dependencies": {
+    "express": "3.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ging/oauth2-example-client"
+  },
+  "contributors": [
+    {
+      "name": "Alvaro Alonso",
+      "email": "aalonsog@dit.upm.es"
+    },
+    {
+      "name": "Javier Cerviño",
+      "email": "jcervino@dit.upm.es"
+    }
+  ]
+}
