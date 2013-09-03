@@ -47,7 +47,7 @@ app.get('/', function(req, res){
     } else {
 
         var user = JSON.parse(req.session.user);
-        res.send("Wellcome " + user.displayName + "<br> Your email address is " + user.email);
+        res.send("Welcome " + user.displayName + "<br> Your email address is " + user.email);
     }
 });
 
