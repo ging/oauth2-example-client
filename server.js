@@ -37,17 +37,13 @@ var oa = new OAuth2(client_id,
 // Handles requests to the main page
 app.get('/', function(req, res){
 
-    // If auth_token is not stored in a session cookie it redirects to IDM authentication portal 
-    if(!req.session.oauth_token) {
+    // If auth_token is not stored in a session cookie it sends a button to redirect to IDM authentication portal 
+    if(!req.session.access_token) {
+        res.send("Oauth2 IDM Demo.<br><br><button onclick='window.location.href=\"/auth\"'>Log in with FI-WARE Account</button>");
 
-        var path = oa.getAuthorizeUrl();
-        res.redirect(path);
-
-    // If auth_token is stored in a session cookie goes to the main page and prints some user data (getting it also from the session cookie) 
+    // If auth_token is stored in a session cookie it sends a button to get user info
     } else {
-
-        var user = JSON.parse(req.session.user);
-        res.send("Welcome " + user.displayName + "<br> Your email address is " + user.email);
+        res.send("Successfully authenticated. <br><br> Your oauth access_token: " +req.session.access_token + "<br><br><button onclick='window.location.href=\"/user_info\"'>Get my user info</button>");
     }
 });
 
@@ -58,24 +54,35 @@ app.get('/login', function(req, res){
     oa.getOAuthAccessToken(req.query.code, function (e, results){
 
         // Stores the access_token in a session cookie
-        req.session.oauth_token = results.access_token;
+        req.session.access_token = results.access_token;
 
-        var url = config.idmURL + '/user/';
+        res.redirect('/');
 
-        // Using the access token asks the IDM for the user info
-        oa.get(url, results.access_token, function (e, response) {
+    });
+});
 
-            // Stores the user info in a session cookie and redirects to the main page
-            req.session.user = response;
-            res.redirect('/');
-        });
+// Redirection to IDM authentication portal
+app.get('/auth', function(req, res){
+    var path = oa.getAuthorizeUrl();
+    res.redirect(path);
+});
+
+// Ask IDM for user info
+app.get('/user_info', function(req, res){
+    var url = config.idmURL + '/user/';
+
+    // Using the access token asks the IDM for the user info
+    oa.get(url, req.session.access_token, function (e, response) {
+
+        var user = JSON.parse(response);
+        res.send("Welcome " + user.displayName + "<br> Your email address is " + user.email + "<br><br><button onclick='window.location.href=\"/logout\"'>Log out</button>");
     });
 });
 
 // Handles logout requests to remove access_token from the session cookie
 app.get('/logout', function(req, res){
 
-    req.session.oauth_token = undefined;
+    req.session.access_token = undefined;
     res.redirect('/');
 });
 
