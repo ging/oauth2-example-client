@@ -1,0 +1,8 @@
+var config = {}
+
+config.idmURL = '';
+config.client_id = '';
+config.client_secret = '';
+config.callbackURL = '';
+
+module.exports = config;
