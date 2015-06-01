@@ -121,8 +121,12 @@ exports.OAuth2.prototype._executeRequest= function( http_library, options, post_
   request.end();  
 }
 
-exports.OAuth2.prototype.getAuthorizeUrl= function() {
-  return this._baseSite + this._authorizeUrl + '?response_type=code&client_id=' + this._clientId + '&state=xyz&redirect_uri=' + this._callbackURL;
+exports.OAuth2.prototype.getAuthorizeUrl= function(response_type) {
+  
+  response_type = response_type || 'code';
+
+  return this._baseSite + this._authorizeUrl + '?response_type=' + response_type + '&client_id=' + this._clientId +  '&state=xyz&redirect_uri=' + this._callbackURL;
+
 }
 
 exports.OAuth2.prototype.getOAuthAccessToken= function(code, callback) {

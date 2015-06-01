@@ -24,6 +24,7 @@ app.configure(function () {
 var client_id = config.client_id;
 var client_secret = config.client_secret;
 var idmURL = config.idmURL;
+var response_type = config.response_type;
 var callbackURL = config.callbackURL;
 
 // Creates oauth library object with the config data
@@ -63,7 +64,7 @@ app.get('/login', function(req, res){
 
 // Redirection to IDM authentication portal
 app.get('/auth', function(req, res){
-    var path = oa.getAuthorizeUrl();
+    var path = oa.getAuthorizeUrl(response_type);
     res.redirect(path);
 });
 

@@ -3,6 +3,11 @@ var config = {}
 config.idmURL = '';
 config.client_id = '';
 config.client_secret = '';
-config.callbackURL = '';
+config.callbackURL = 'http://localhost/login';
+
+// Depending on Grant Type:
+// Authorization Code Grant: code
+// Implicit Grant: token
+config.response_type = 'code';
 
 module.exports = config;
