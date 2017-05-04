@@ -70,7 +70,7 @@ app.get('/auth', function(req, res){
 
 // Ask IDM for user info
 app.get('/user_info', function(req, res){
-    var url = config.idmURL + '/user/';
+    var url = config.idmURL + '/user';
 
     // Using the access token asks the IDM for the user info
     oa.get(url, req.session.access_token, function (e, response) {
