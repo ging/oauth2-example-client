@@ -3,8 +3,27 @@
   "version": "0.1.0",
   "description": "Oauth2 authentication example for FI-WARE GE applications",
   "author": "GING DIT UPM",
+  "scripts": {
+    "start": "node server.js",
+    "lint": "eslint . --cache --fix"
+  },
+  "engines": {
+    "node": ">=8.6"
+  },
   "dependencies": {
-    "express": "3.x"
+    "express": "~4.16.0",
+    "morgan": "~1.9.0",
+    "body-parser": "^1.18.3",
+    "cookie-parser": "~1.4.3",
+    "express-session": "^1.15.6"
+  },
+  "devDependencies": {
+    "ajv": "^6.5.2",
+    "eslint": "^5.3.0",
+    "eslint-config-tamia": "^6.0.1",
+    "eslint-plugin-prettier": "^2.6.2",
+    "memfs": "2.9.4",
+    "prettier": "^1.14.2"
   },
   "repository": {
     "type": "git",

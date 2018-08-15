@@ -1,34 +1,38 @@
-var express = require('express');
-var OAuth2 = require('./oauth2').OAuth2;
-var config = require('./config');
+const express = require('express');
+const OAuth2 = require('./oauth2').OAuth2;
+const config = require('./config');
+const logger = require('morgan');
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
+const session = require('express-session');
+const http = require('http');
+const port = 80;
 
 
 // Express configuration
-var app = express();
-app.use(express.logger());
-app.use(express.bodyParser());
-app.use(express.cookieParser());
-app.use(express.session({
-    secret: "skjghskdjfhbqigohqdiouk"
+const app = express();
+app.use(logger('dev'));
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }));
+// parse application/json
+app.use(bodyParser.json());
+app.use(cookieParser());
+app.use(session({
+    secret: "skjghskdjfhbqigohqdiouk",
+    resave: false,
+    saveUninitialized: true
 }));
-
-app.configure(function () {
-    "use strict";
-    app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
-    //app.use(express.logger());
-    app.use(express.static(__dirname + '/public'));
-});
 
 
 // Config data from config.js file
-var client_id = config.client_id;
-var client_secret = config.client_secret;
-var idmURL = config.idmURL;
-var response_type = config.response_type;
-var callbackURL = config.callbackURL;
+const client_id = config.client_id;
+const client_secret = config.client_secret;
+const idmURL = config.idmURL;
+const response_type = config.response_type;
+const callbackURL = config.callbackURL;
 
 // Creates oauth library object with the config data
-var oa = new OAuth2(client_id,
+const oa = new OAuth2(client_id,
                     client_secret,
                     idmURL,
                     '/oauth2/authorize',
@@ -52,7 +56,8 @@ app.get('/', function(req, res){
 app.get('/login', function(req, res){
    
     // Using the access code goes again to the IDM to obtain the access_token
-    oa.getOAuthAccessToken(req.query.code, function (e, results){
+    oa.getOAuthAccessToken(req.query.code)
+    .then (results => {
 
         // Stores the access_token in a session cookie
         req.session.access_token = results.access_token;
@@ -64,18 +69,19 @@ app.get('/login', function(req, res){
 
 // Redirection to IDM authentication portal
 app.get('/auth', function(req, res){
-    var path = oa.getAuthorizeUrl(response_type);
+    const path = oa.getAuthorizeUrl(response_type);
     res.redirect(path);
 });
 
 // Ask IDM for user info
 app.get('/user_info', function(req, res){
-    var url = config.idmURL + '/user';
+    const url = config.idmURL + '/user';
 
     // Using the access token asks the IDM for the user info
-    oa.get(url, req.session.access_token, function (e, response) {
+    oa.get(url, req.session.access_token)
+    then (response => {
 
-        var user = JSON.parse(response);
+        const user = JSON.parse(response);
         res.send("Welcome " + user.displayName + "<br> Your email address is " + user.email + "<br><br><button onclick='window.location.href=\"/logout\"'>Log out</button>");
     });
 });
@@ -87,5 +93,52 @@ app.get('/logout', function(req, res){
     res.redirect('/');
 });
 
-console.log('Server listen in port 80. Connect to localhost');
-app.listen(80);
+app.set('port', port);
+
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+    if (error.syscall !== 'listen') {
+        throw error;
+    }
+
+    const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
+
+    // handle specific listen errors with friendly messages
+    switch (error.code) {
+        case 'EACCES':
+            console.error(bind + ' requires elevated privileges');
+            process.exit(1);
+            break;
+        case 'EADDRINUSE':
+            console.error(bind + ' is already in use');
+            process.exit(1);
+            break;
+        default:
+            throw error;
+    }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListeningServer() {
+    const addr = server.address();
+    const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
+    console.log('Listening on ' + bind);
+}
+
+/**
+ * Create HTTP server for app
+ */
+
+const server = http.createServer(app);
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListeningServer);
+
+
