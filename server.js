@@ -79,7 +79,7 @@ app.get('/user_info', function(req, res){
 
     // Using the access token asks the IDM for the user info
     oa.get(url, req.session.access_token)
-    then (response => {
+    .then (response => {
 
         const user = JSON.parse(response);
         res.send("Welcome " + user.displayName + "<br> Your email address is " + user.email + "<br><br><button onclick='window.location.href=\"/logout\"'>Log out</button>");
