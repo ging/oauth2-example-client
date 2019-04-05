@@ -9,7 +9,8 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const http = require('http');
 const method_override = require('method-override');
-const fs = require('fs')
+const fs = require('fs');
+const path = require('path')
 const exec = require('child_process').exec;
 
 // Express configuration
@@ -23,6 +24,12 @@ const flink_url = 'http://'+flink_host+':'+flink_port+'/#/overview';
 
 
 app.use(method_override('_method'));
+
+// view engine setup
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 
 // parse application/x-www-form-urlencoded
@@ -57,7 +64,8 @@ app.get('/', function(req, res){
 
     // If auth_token is not stored in a session cookie it sends a button to redirect to IDM authentication portal 
     if(!req.session.access_token) {
-        res.send("Oauth2 IDM Demo.<br><br><button onclick='window.location.href=\"/auth\"'>Log in with FI-WARE Account</button>");
+        res.render('login');
+        //res.send("Oauth2 IDM Demo.<br><br><button onclick='window.location.href=\"/auth\"'>Log in with FI-WARE Account</button>");
 
     // If auth_token is stored in a session cookie it sends a button to get user info
     } else {

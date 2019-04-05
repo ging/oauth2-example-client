@@ -4,6 +4,7 @@
   "description": "Oauth2 authentication example for FI-WARE GE applications",
   "author": "GING DIT UPM",
   "dependencies": {
+    "ejs": "^2.6.1",
     "express": "3.x",
     "method-override": "^3.0.0"
   },
