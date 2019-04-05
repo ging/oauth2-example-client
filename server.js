@@ -135,11 +135,11 @@ function onError(error) {
 
 const flink_host = process.env.FLINK_HOST || 'localhost';
 const flink_port = process.env.FLINK_PORT || 8081;
-const flink_url = 'http://'+flink_host+':'+flink_port;
+const flink_url = 'http://'+flink_host+':'+flink_port+'/#/overview';
 
 function tryConnection(res) {
 
-    const seconds = 1.5;
+    const seconds = 3;
 
     var interval = setInterval(() => {
         console.log('Waiting %d seconds before attempting again.', seconds);
@@ -156,7 +156,9 @@ function tryConnection(res) {
 function connectApache() {
     return new Promise(function(resolve, reject) {
         http.get(flink_url, function(response) {
-            resolve();
+            if (response.statusCode === 200) {
+                resolve();
+            }
         }).on('error', function(error) {
             reject();
         });
