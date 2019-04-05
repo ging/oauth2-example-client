@@ -12,7 +12,6 @@ const port = 80;
 const method_override = require('method-override');
 const fs = require('fs')
 const exec = require('child_process').exec;
-const async = require('async');
 
 // Express configuration
 const app = express();
