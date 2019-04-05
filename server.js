@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const express = require('express');
 const OAuth2 = require('./oauth2').OAuth2;
 const config = require('./config');
@@ -8,10 +10,13 @@ const session = require('express-session');
 const http = require('http');
 const port = 80;
 const method_override = require('method-override');
+const fs = require('fs')
+const exec = require('child_process').exec;
+const async = require('async');
 
 // Express configuration
 const app = express();
-app.use(logger('dev'));
+//app.use(logger('dev'));
 
 app.use(method_override('_method'));
 
@@ -63,11 +68,14 @@ app.get('/login', function(req, res){
     oa.getOAuthAccessToken(req.query.code)
     .then (results => {
 
-        // Stores the access_token in a session cookie
-        req.session.access_token = results.access_token;
+        let access_token = 'export ACCESS_TOKEN=' + results.access_token;
 
-        res.redirect('/');
-
+        return fs.writeFile('./access_token', access_token, { flag: 'w' }, function(err) {
+            if (err) 
+                return console.error(err);
+            
+            tryConnection(res);
+        });
     });
 });
 
@@ -96,7 +104,7 @@ app.get('/logout', function(req, res){
     req.session.access_token = undefined;
     res.redirect('/');
 });
-
+    
 app.set('port', port);
 
 
@@ -126,6 +134,36 @@ function onError(error) {
     }
 }
 
+const flink_host = process.env.FLINK_HOST || 'localhost';
+const flink_port = process.env.FLINK_PORT || 8081;
+const flink_url = 'http://'+flink_host+':'+flink_port;
+
+function tryConnection(res) {
+
+    const seconds = 1.5;
+
+    var interval = setInterval(() => {
+        console.log('Waiting %d seconds before attempting again.', seconds);
+        connectApache().then(function() {
+            clearInterval(interval);
+            res.redirect(flink_url)
+        }).catch(function(error) {
+            console.log('  -  Fail connect Apache Flink')
+        })
+    }, seconds * 1000);
+    
+}
+
+function connectApache() {
+    return new Promise(function(resolve, reject) {
+        http.get(flink_url, function(response) {
+            resolve();
+        }).on('error', function(error) {
+            reject();
+        });
+    })
+}
+
 /**
  * Event listener for HTTP server "listening" event.
  */
@@ -133,12 +171,13 @@ function onError(error) {
 function onListeningServer() {
     const addr = server.address();
     const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
-    console.log('Listening on ' + bind);
+    //console.log('Listening on ' + bind);
 }
 
 /**
  * Create HTTP server for app
  */
+
 
 const server = http.createServer(app);
 server.listen(port);

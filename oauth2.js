@@ -126,7 +126,7 @@ exports.OAuth2.prototype.getAuthorizeUrl= function(responseType) {
   
   responseType = responseType || 'code';
 
-  return this._baseSite + this._authorizeUrl + '?response_type=' + responseType + '&client_id=' + this._clientId +  '&state=xyz&redirect_uri=' + this._callbackURL;
+  return this._baseSite + this._authorizeUrl + '?response_type=' + responseType + '&client_id=' + this._clientId +  '&state=xyz&redirect_uri=' + this._callbackURL + '&scope=permanent';
 
 }
 
