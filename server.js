@@ -8,7 +8,6 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const http = require('http');
-const port = 80;
 const method_override = require('method-override');
 const fs = require('fs')
 const exec = require('child_process').exec;
@@ -16,6 +15,12 @@ const exec = require('child_process').exec;
 // Express configuration
 const app = express();
 //app.use(logger('dev'));
+
+const port = process.env.OAUTH_CLIENT_PORT || 80;
+const flink_host = process.env.FLINK_HOST || 'localhost';
+const flink_port = process.env.FLINK_PORT || 8081;
+const flink_url = 'http://'+flink_host+':'+flink_port+'/#/overview';
+
 
 app.use(method_override('_method'));
 
@@ -56,7 +61,7 @@ app.get('/', function(req, res){
 
     // If auth_token is stored in a session cookie it sends a button to get user info
     } else {
-        res.send("Successfully authenticated. <br><br> Your oauth access_token: " +req.session.access_token + "<br><br><button onclick='window.location.href=\"/user_info\"'>Get my user info</button>");
+        res.redirect(flink_url);
     }
 });
 
@@ -68,7 +73,7 @@ app.get('/login', function(req, res){
     .then (results => {
 
         let access_token = 'export ACCESS_TOKEN=' + results.access_token;
-
+        req.session.access_token = results.access_token;
         return fs.writeFile('./access_token', access_token, { flag: 'w' }, function(err) {
             if (err) 
                 return console.error(err);
@@ -103,7 +108,8 @@ app.get('/logout', function(req, res){
     req.session.access_token = undefined;
     res.redirect('/');
 });
-    
+
+
 app.set('port', port);
 
 
@@ -133,19 +139,15 @@ function onError(error) {
     }
 }
 
-const flink_host = process.env.FLINK_HOST || 'localhost';
-const flink_port = process.env.FLINK_PORT || 8081;
-const flink_url = 'http://'+flink_host+':'+flink_port+'/#/overview';
-
 function tryConnection(res) {
 
-    const seconds = 3;
+    const seconds = 1.5;
 
     var interval = setInterval(() => {
         console.log('Waiting %d seconds before attempting again.', seconds);
         connectApache().then(function() {
             clearInterval(interval);
-            res.redirect(flink_url)
+            res.redirect(flink_url);
         }).catch(function(error) {
             console.log('  -  Fail connect Apache Flink')
         })
