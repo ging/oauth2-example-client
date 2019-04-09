@@ -59,18 +59,23 @@ const oa = new OAuth2(client_id,
                     '/oauth2/token',
                     callbackURL);
 
-// Handles requests to the main page
-app.get('/', function(req, res){
-
-    // If auth_token is not stored in a session cookie it sends a button to redirect to IDM authentication portal 
-    if(!req.session.access_token) {
-        res.render('login');
-        //res.send("Oauth2 IDM Demo.<br><br><button onclick='window.location.href=\"/auth\"'>Log in with FI-WARE Account</button>");
-
-    // If auth_token is stored in a session cookie it sends a button to get user info
+function check_access_token_file(req, res, next) {
+    if (fs.existsSync('access_token') && !req.session.access_token) {
+        fs.readFile('./access_token', function read(err, data) {
+            if (err) {
+                res.send("ERROR: Reading access_token file: " + err);
+            }
+            req.session.access_token = data.toString('utf8').split('=')[1]
+            res.redirect(flink_url);
+        });
     } else {
-        res.redirect(flink_url);
+        next();
     }
+}
+
+// Handles requests to the main page
+app.get('/', check_access_token_file, function(req, res){
+    res.render('login');
 });
 
 // Handles requests from IDM with the access code
@@ -92,13 +97,13 @@ app.get('/login', function(req, res){
 });
 
 // Redirection to IDM authentication portal
-app.get('/auth', function(req, res){
+app.get('/auth', check_access_token_file, function(req, res){
     const path = oa.getAuthorizeUrl(response_type);
     res.redirect(path);
 });
 
 // Ask IDM for user info
-app.get('/user_info', function(req, res){
+app.get('/user_info', check_access_token_file, function(req, res){
     const url = config.idmURL + '/user';
 
     // Using the access token asks the IDM for the user info
@@ -111,11 +116,11 @@ app.get('/user_info', function(req, res){
 });
 
 // Handles logout requests to remove access_token from the session cookie
-app.get('/logout', function(req, res){
+/*app.get('/logout', function(req, res){
 
     req.session.access_token = undefined;
     res.redirect('/');
-});
+});*/
 
 
 app.set('port', port);

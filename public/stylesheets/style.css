@@ -1,0 +1,58 @@
+body {
+  background-color: #8D8686;
+}
+
+a {
+  text-decoration: none;
+}
+
+.login {
+  width: 40%;
+  min-width: 200px;
+  margin: 7rem auto;
+  align-self: center;
+  background-color: white;
+  border-radius: 1.5rem;
+  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+  padding: 7rem 3rem 7rem 3rem;
+}
+
+.login .logo-header {
+  align-self: center;
+  width: 35%;
+  min-width: 165px;
+  margin: 0 auto;
+}
+.login .logo-header img {
+  height: 100%;
+  width: 100%;
+  min-width: 165px;
+  object-fit: contain;
+}
+
+.login .login-button {
+  height: 100%;
+  width: 100%;
+  margin: 1.5rem auto;
+}
+
+.login .login-button a {
+  border: none;
+  background: #8D8686;
+  color: #ffffff !important;
+  font-weight: 100;
+  padding: 20px;
+  border-radius: 6px;
+  display: inline-block;
+  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 10px 0 rgba(0,0,0,0.12);
+}
+
+.login .login-button a:hover {
+  color: #8D8686 !important;
+  font-weight: 700 !important;
+  letter-spacing: 3px;
+  background: none;
+  -webkit-box-shadow: 0px 5px 100px -10px rgba(0,0,0,0.57);
+  -moz-box-shadow: 0px 5px 40px -10px rgba(0,0,0,0.87);
+  transition: all 0.3s ease 0s;
+}
