@@ -60,8 +60,8 @@ const oa = new OAuth2(client_id,
                     callbackURL);
 
 function check_access_token_file(req, res, next) {
-    if (fs.existsSync('access_token') && !req.session.access_token) {
-        fs.readFile('./access_token', function read(err, data) {
+    if (fs.existsSync('/etc/oauth/access_token') && !req.session.access_token) {
+        fs.readFile('./etc/oauth/access_token', function read(err, data) {
             if (err) {
                 res.send("ERROR: Reading access_token file: " + err);
             }
@@ -87,7 +87,7 @@ app.get('/login', function(req, res){
 
         let access_token = 'export ACCESS_TOKEN=' + results.access_token;
         req.session.access_token = results.access_token;
-        return fs.writeFile('./access_token', access_token, { flag: 'w' }, function(err) {
+        return fs.writeFile('./etc/oauth/access_token', access_token, { flag: 'w' }, function(err) {
             if (err) 
                 return console.error(err);
             
