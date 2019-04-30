@@ -12,11 +12,11 @@ Oauth2 authentication example for FI-WARE GE applications
 
 	npm install
 
-- Configure OAuth2 credentials in config.js file (you will find theme in your IDM account)
+- Configure OAuth2 credentials in config.js file (you will find them in your IDM account)
 
 - Start example server
 
-	sudo node server
+	sudo nodejs server
 
 - Connect to http://localhost to try the example 
 
