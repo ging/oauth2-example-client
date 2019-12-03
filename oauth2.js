@@ -129,6 +129,15 @@ exports.OAuth2.prototype.getAuthorizeUrl= function(responseType) {
 
 }
 
+exports.OAuth2.prototype.getAuthorizeUrlJWT= function(responseType) {
+  
+  responseType = responseType || 'code';
+
+  return this._baseSite + this._authorizeUrl + '?response_type=' + responseType + '&client_id=' + this._clientId +  '&state=xyz&scope=jwt&redirect_uri=' + this._callbackURL;
+
+}
+
+
 function getResults(data){
   let results;
   try {

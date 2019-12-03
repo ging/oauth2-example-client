@@ -44,7 +44,7 @@ app.get('/', function(req, res){
 
     // If auth_token is not stored in a session cookie it sends a button to redirect to IDM authentication portal 
     if(!req.session.access_token) {
-        res.send("Oauth2 IDM Demo.<br><br><button onclick='window.location.href=\"/auth\"'>Log in with FI-WARE Account</button>");
+        res.send("Oauth2 IDM Demo.<br><br><button onclick='window.location.href=\"/auth\"'>Log in with Keyrock Account</button><br><br><button onclick='window.location.href=\"/authJWT\"'>Log in with Keyrock Account and JWT</button>");
 
     // If auth_token is stored in a session cookie it sends a button to get user info
     } else {
@@ -70,6 +70,12 @@ app.get('/login', function(req, res){
 // Redirection to IDM authentication portal
 app.get('/auth', function(req, res){
     const path = oa.getAuthorizeUrl(response_type);
+    res.redirect(path);
+});
+
+// Redirection to IDM authentication portal
+app.get('/authJWT', function(req, res){
+    const path = oa.getAuthorizeUrlJWT(response_type);
     res.redirect(path);
 });
 
