@@ -152,6 +152,7 @@ exports.OAuth2.prototype.getOAuthAccessToken= function(code) {
          'Content-Length': postData.length,
      };
 
+    console.log('Sending access token request to', that._getAccessTokenUrl(), 'with body', postData);
     that._request("POST", that._getAccessTokenUrl(), postHeaders, postData, null, (error, data) => {
       return error ? reject(error) : resolve(getResults(data));
     });
