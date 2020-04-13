@@ -1,9 +1,9 @@
 const querystring= require('querystring');
 const https= require('https');
-const http= require('http');    
+const http= require('http');
 const URL= require('url');
 
-exports.OAuth2= function(clientId, clientSecret, baseSite, authorizePath, accessTokenPath, callbackURL, customHeaders) {
+exports.OAuth2= function(scope, clientId, clientSecret, baseSite, authorizePath, accessTokenPath, callbackURL, customHeaders) {
   this._clientId= clientId;
   this._clientSecret= clientSecret;
   this._baseSite= baseSite;
@@ -13,6 +13,8 @@ exports.OAuth2= function(clientId, clientSecret, baseSite, authorizePath, access
   this._accessTokenName= "access_token";
   this._authMethod= "Basic";
   this._customHeaders = customHeaders || {};
+  this._scope = scope;
+  console.log(this._scope);
 }
 
 // This 'hack' method is required for sites that don't use
@@ -67,6 +69,7 @@ exports.OAuth2.prototype._request= function(method, url, headers, postBody, acce
   }
 
   let queryStr= querystring.stringify(parsedUrl.query);
+  console.log(queryStr);
   if( queryStr ) {queryStr=  "?" + queryStr;}
   const options = {
     host:parsedUrl.hostname,
@@ -118,14 +121,15 @@ exports.OAuth2.prototype._executeRequest= function( httpLibrary, options, postBo
   if(options.method === 'POST' && postBody) {
      request.write(postBody);
   }
-  request.end();  
+  request.end();
 }
 
 exports.OAuth2.prototype.getAuthorizeUrl= function(responseType) {
-  
-  responseType = responseType || 'code';
 
-  return this._baseSite + this._authorizeUrl + '?response_type=' + responseType + '&client_id=' + this._clientId +  '&state=xyz&redirect_uri=' + this._callbackURL;
+  responseType = responseType || 'code';
+  console.log(this._baseSite + this._authorizeUrl + '?response_type=' + responseType + '&client_id=' + this._clientId +  '&state=xyz&scope='+this._scope+'&redirect_uri=' + this._callbackURL);
+
+  return this._baseSite + this._authorizeUrl + '?response_type=' + responseType + '&client_id=' + this._clientId +  '&state=xyz&scope='+this._scope+'&redirect_uri=' + this._callbackURL;
 
 }
 
@@ -140,11 +144,11 @@ function getResults(data){
   return results;
 }
 
-exports.OAuth2.prototype.getOAuthAccessToken= function(code) {
+exports.OAuth2.prototype.getOAuthAccessToken= function(code, grant_type) {
   const that = this;
-
-  return new Promise((resolve, reject) => { 
-    const postData = 'grant_type=authorization_code&code=' + code + '&redirect_uri=' + that._callbackURL;
+  console.log(grant_type);
+  return new Promise((resolve, reject) => {
+    const postData = 'grant_type='+grant_type+'&code=' + code + '&redirect_uri=' + that._callbackURL;
 
     const postHeaders= {
          'Authorization': that.buildAuthHeader(),
