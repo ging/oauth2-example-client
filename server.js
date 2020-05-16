@@ -6,7 +6,7 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const http = require('http');
-const port = 80;
+const port = 8080;
 
 
 // Express configuration
@@ -30,9 +30,12 @@ const client_secret = config.client_secret;
 const idmURL = config.idmURL;
 const response_type = config.response_type;
 const callbackURL = config.callbackURL;
-
+const scope = config.scope;
+console.log(scope);
+const grant_type = config.grant_type;
+console.log(grant_type);
 // Creates oauth library object with the config data
-const oa = new OAuth2(client_id,
+const oa = new OAuth2(scope, client_id,
                     client_secret,
                     idmURL,
                     '/oauth2/authorize',
@@ -40,36 +43,68 @@ const oa = new OAuth2(client_id,
                     callbackURL);
 
 // Handles requests to the main page
-app.get('/', function(req, res){
-
-    // If auth_token is not stored in a session cookie it sends a button to redirect to IDM authentication portal 
-    if(!req.session.access_token) {
-        res.send("Oauth2 IDM Demo.<br><br><button onclick='window.location.href=\"/auth\"'>Log in with FI-WARE Account</button>");
+app.get('/login', function(req, res){
+    //console.log(req);
+    // If auth_token is not stored in a session cookie it sends a button to redirect to IDM authentication portal
+    if(!req.session.access_token && !req.session.id_token) {
+        res.send("OpenID Connect IDM Demo.<br><br><button onclick='window.location.href=\"/auth\"'>Log in with FI-WARE Account</button>");
 
     // If auth_token is stored in a session cookie it sends a button to get user info
     } else {
-        res.send("Successfully authenticated. <br><br> Your oauth access_token: " +req.session.access_token + "<br><br><button onclick='window.location.href=\"/user_info\"'>Get my user info</button>");
+      var response = "Successfully authenticated.  ";
+      if (req.session.id_token){
+        response += " <br><br> Your id_token: "+req.session.id_token;
+        response += "<br><br><button onclick='window.location.href=\"/decode_jwt\"'>Decode JWT</button>";
+      }
+      if(req.session.access_token){
+        response +=" <br><br> Your access_token: " +req.session.access_token;
+        response += "<br><br><button onclick='window.location.href=\"/user_info\"'>Get my user info</button>";
+      }
+
+        res.send(response);
     }
 });
 
 // Handles requests from IDM with the access code
-app.get('/login', function(req, res){
-   
+app.get('/', function(req, res){
+    console.log(req.query);
+    if(grant_type=='authorization_code'){
     // Using the access code goes again to the IDM to obtain the access_token
-    oa.getOAuthAccessToken(req.query.code)
+      oa.getOAuthAccessToken(req.query.code, grant_type)
+      .then (results => {
+
+          // Stores the access_token in a session cookie
+          req.session.access_token = results.access_token;
+          req.session.id_token = results.id_token;
+
+          res.redirect('/login');
+
+      });
+  }else if (grant_type=='implicit'){
+    req.session.id_token = req.query.id_token;
+    req.session.access_token = req.query.access_token;
+
+    res.redirect('/login');
+  }else if (grant_type=='hybrid'){
+    console.log("ID_TOKEN Authorization endpoint: "+req.query.id_token);
+
+    oa.getOAuthAccessToken(req.query.code, grant_type)
     .then (results => {
 
         // Stores the access_token in a session cookie
         req.session.access_token = results.access_token;
+        req.session.id_token = results.id_token;
 
-        res.redirect('/');
+        res.redirect('/login');
 
     });
+
+  }
 });
 
 // Redirection to IDM authentication portal
 app.get('/auth', function(req, res){
-    const path = oa.getAuthorizeUrl(response_type);
+    const path = oa.getAuthorizeUrl(response_type, grant_type);
     res.redirect(path);
 });
 
@@ -84,6 +119,18 @@ app.get('/user_info', function(req, res){
         const user = JSON.parse(response);
         res.send("Welcome " + user.displayName + "<br> Your email address is " + user.email + "<br><br><button onclick='window.location.href=\"/logout\"'>Log out</button>");
     });
+});
+
+app.get('/decode_jwt', function(req, res){
+    const url = config.idmURL + '/user';
+    var jwtDecoded = req.session.id_token.split('.');
+    var header = Buffer.from(jwtDecoded[0], 'base64').toString();
+var headerParsed = JSON.stringify(JSON.parse(header), null, 2);
+    var payload = Buffer.from(jwtDecoded[1], 'base64').toString();
+var payloadParsed = JSON.stringify(JSON.parse(payload), null, 2);
+
+   
+    res.send("This is the DECODED JSON WEB TOKEN <br><br> HEADER: <br><pre>" + headerParsed + "</pre><br> PAYLOAD<br><pre>" + payloadParsed +"</pre><br><button onclick='window.location.href=\"/logout\"'>Log out</button>");
 });
 
 // Handles logout requests to remove access_token from the session cookie
@@ -140,5 +187,3 @@ const server = http.createServer(app);
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListeningServer);
-
-
